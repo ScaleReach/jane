@@ -2,6 +2,9 @@ const express = require("express");
 const path = require("path")
 const bparser = require("body-parser")
 
+const dotenv = require("dotenv").config({ path: __dirname + "/.env" })
+console.log(process.env.OPENAI_API_KEY)
+
 const app = express();
 const PORT = 3000;
 

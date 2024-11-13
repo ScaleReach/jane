@@ -31,7 +31,7 @@ const verifiedActors = (req, res, next) => {
 		}
 
 		console.log("VALIDATED")
-		next() // validated
+		return next() // validated
 	}
 
 	return res.status(400).end()
@@ -42,18 +42,23 @@ router.post("/", verifiedActors, async (req, res) => {
 	console.log(prompt, typeof prompt)
 	if (typeof prompt != "string" || prompt.length >= 1000) {
 		// not a string, or exceeds 1000 characters
+		console.log("hello")
 		return res.status(400).end()
 	}
 
 	let chatHistory = req.session.data.chatHistory
 	console.log("rchatHistory", req.session.data.chatHistory)
-	let response = await chatService.chat(chatHistory)
+	let response = await chatService.chat(chatHistory, prompt)
 
 	// build new entry in chathistory
+	console.log(response)
 	if (response.content) {
-		req.session.data.chatHistory.push([1, response.content])
 		console.log("chatHistory", req.session.data.chatHistory)
 		req.session.update()
+	} else {
+		// failed
+		console.log("Failed")
+		return res.status(400).end()
 	}
 
 	return res.json({"message": response.content})
