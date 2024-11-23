@@ -1,10 +1,17 @@
-const config = {
-	"development": {
-		headerAuthKey: "x-jane-key"
-	},
-	"production": {
-		headerAuthKey: "x-jane-key"
+let development = {
+	headerAuthKey: "x-jane-key",
+
+	interface: {
+		url: "http://localhost:3001",
 	}
 }
 
-module.exports = config[process.env.NODE_ENV === "production" ? "production" : "development"]
+let production = {
+	headerAuthKey: "x-jane-key",
+
+	interface: {
+		url: "http://localhost:3001",
+	}
+}
+
+module.exports = process.env.NODE_ENV === "production" ? production : development
