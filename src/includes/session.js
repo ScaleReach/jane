@@ -13,7 +13,12 @@ class SessionData {
 	static skeleton() {
 		return {
 			"callerName": "",
-			"chatHistory": []
+			"chatHistory": [],
+			"awaitingInput": false,
+			"awaitingInputId": 0,
+
+			"userId": null,
+			"accounts": null
 		}
 	}
 }

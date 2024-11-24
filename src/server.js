@@ -15,7 +15,7 @@ const chat_router = require(path.join(__dirname, "./routers/chat.js"));
 app.use((req, res, next) => {
 	res.setHeader("Access-Control-Allow-Origin", config.interface.url) // allow interface
 	res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	res.setHeader("Access-Control-Allow-Headers", `Content-Type, Authorization, ${config.headerAuthKey}`)
+	res.setHeader("Access-Control-Allow-Headers", `Content-Type, Authorization, ${config.authKeyHeaderField}`)
 	next();
 })
 
