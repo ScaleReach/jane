@@ -1,9 +1,11 @@
 const express = require("express");
 const path = require("path")
 const bparser = require("body-parser")
-const config = require("./config")
-
 const dotenv = require("dotenv").config({ path: __dirname + "/.env" })
+
+const config = require("./config")
+const header = require("./header")
+
 console.log(process.env.OPENAI_API_KEY)
 
 const app = express();
@@ -25,9 +27,10 @@ app.use(chat_router.baseURL, chat_router.router)
 console.log("Allowing CORS", config.interface.url)
 
 app.listen(PORT, (error) => {
-	if(!error)
+	if (!error) {
 		console.log("Server is Successfully Running, and App is listening on port "+ PORT)
-	else 
+		console.log(header("Jane", PORT))
+	} else {
 		console.log("Error occurred, server can't start", error);
 	}
-);
+});
