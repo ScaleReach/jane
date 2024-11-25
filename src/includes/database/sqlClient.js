@@ -37,7 +37,9 @@ async function getUserDataFromNRICDigits(nric) {
 	 * throws an error if client failed to run query
 	 */
 	try {
-		let userDataRow = await intent_pool.query(`SELECT * FROM "user" WHERE nric LIKE $1`, [nric])
+		let userDataRow = await intent_pool.query(`SELECT * FROM "user" WHERE nric LIKE $1`, [`_${nric}_`])
+		console.log("querying", nric)
+		console.log(userDataRow.rows)
 		if (userDataRow.rows.length !== 1) {
 			// no results or more than one result
 			return
@@ -72,7 +74,7 @@ async function getTopThreeRelevantKnowledge(queryEmbedding) {
 	 * returns top 3 most relevant question-answer knowledge rows (in order, with index 0 being most relevant)
 	 */
 	try {
-		let knowledgeRow = await knowledge_pool.query(`SELECT question, answer FROM "faq" ORDER BY embedding <-> $1 LIMIT 3`, [pgvector.toSql(queryEmbedding)])
+		let knowledgeRow = await knowledge_pool.query(`SELECT question, answer FROM "faq" ORDER BY question_embedding <-> $1 LIMIT 3`, [pgvector.toSql(queryEmbedding)])
 		return knowledgeRow.rows
 	} catch (err) {
 		throw new SQLError(`Failed to query from "faq": ${err.message}`)

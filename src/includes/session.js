@@ -17,6 +17,8 @@ class SessionData {
 			"awaitingInput": false,
 			"awaitingInputId": 0,
 
+			"knowledgeBankQueries": 0,
+
 			"userId": null,
 			"accounts": null
 		}

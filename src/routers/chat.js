@@ -45,7 +45,7 @@ const chatResponseHandler = async (req, res, chatResponse, depth=0) => {
 	 * passed as the final stage in pipeline to handle responses
 	 */
 	const addReturnPayload = {} // additional return payload to be specified
-	if (depth >= 2) {
+	if (depth >= 3) {
 		// prevent recursive loop
 		// may happen if llm is forced to return type 2 on all calls
 		return res.status(400).end()
@@ -55,14 +55,14 @@ const chatResponseHandler = async (req, res, chatResponse, depth=0) => {
 		// awaiting input, client to send to endpoint POST @router/supply/:inputId
 		let inputId = +new Date() // act as session id
 
-		req.session.awaitingInput = true
-		req.session.awaitingInputId = inputId
+		req.session.data.awaitingInput = true
+		req.session.data.awaitingInputId = inputId.toString() // important since strict equality is enforced upon checking supplied i
 
 		// add to return payload
 		addReturnPayload.inputId = inputId
 	} else if (chatResponse.type === 3) {
 		// file intent with intent service
-		if (!req.session.userId || !req.session.accounts) {
+		if (!req.session.data.userId || !req.session.data.accounts) {
 			// not yet authenticated
 			return res.status(400).end()
 		}
@@ -72,38 +72,55 @@ const chatResponseHandler = async (req, res, chatResponse, depth=0) => {
 		}
 
 		// in intent description: substitute $x$ for account numbers
-		for (let i = 0; i < req.session.accounts.length; i++) {
-			chatResponse.intent.description = chatResponse.intent.description.replaceAll(`$${i}$`, req.session.accounts[i].id)
+		console.log("req.session.data.accounts", req.session.data.accounts)
+		for (let i = 0; i < req.session.data.accounts.length; i++) {
+			chatResponse.intent.description = chatResponse.intent.description.replaceAll(`$${i}$`, req.session.data.accounts[i].id)
 		}
 
 		// file intent
-		let intentId = await intentService.fileIntent(req.session.userId, chatResponse.intent.type, chatResponse.intent.description)
+		let intentId = await intentService.fileIntent(req.session.data.userId, chatResponse.intent.type, chatResponse.intent.description)
 		if (!intentId) {
 			// failed to file intent
-			console.warn("Failed to file intent with data", req.session.userId, chatResponse)
+			console.warn("Failed to file intent with data", req.session.data.userId, chatResponse)
 			return res.status(500).end()
 		}
 	} else if (chatResponse.type === 2) {
 		// knowledge bank
+		console.log("chatResponse")
 		if (!chatResponse.query) {
 			// chat service did not supply right params
 			return res.status(400).end()
 		}
 
+		// check threshold limit
+		req.session.data.knowledgeBankQueries += 1
+		if (req.session.data.knowledgeBankQueries >= 5) {
+			// over threshold
+			let bl_message = "You have exceeded the threshold for the knolwedge bank, kindly escalate this call to a human provider. Thank you."
+			let followUpChatResp = await chatService.chat(req.session.data.chatHistory, bl_message, 1) // set actor to 1 (indicate system prompt)
+			return chatResponseHandler(req, res, followUpChatResp, ++depth) // recursive chain
+		}
+
 		// embed query and submit it to knowledge base
-		let queryEmbedding = embedding.embedding(chatResponse.query)
+		let queryEmbedding = await embedding.embedding(chatResponse.query)
 		let knowledgeRows;
 		try {
-			knowledgeRows = getTopThreeRelevantKnowledge(queryEmbedding)
+			knowledgeRows = await sqlClient.getTopThreeRelevantKnowledge(queryEmbedding)
 		} catch (err) {
 			console.log("server failed to retrieve knowledge", err.message)
 			return res.status(400).end()
 		}
 
 		// build system prompt
-		const details = `Top 3 most relevant knowledge (from most relevant to most irrelevant):\n${knowledgeRows.map((knowledge, i) => `${i +1} ${knowledge.question}\n- ${knowledge.answer}`)}`
+		let details
+		if (knowledgeRows.length >= 1) {
+			details = `Top 3 most relevant knowledge (from most relevant to most irrelevant):\n${knowledgeRows.map((knowledge, i) => `${i +1} ${knowledge.question}\n- ${knowledge.answer}`)}`
+		} else {
+			details = "No result returned from knowledge bank, kindly escalate the call to a human provider. Thank you."
+		}
 
 		// submit knowledge
+		console.log("\n\nKNOWLEDGE!", details)
 		let chatHistory = req.session.data.chatHistory
 		let knowledgeChatResponse = await chatService.chat(chatHistory, details, 1) // set actor to 1 (indicate system prompt)
 
@@ -154,14 +171,18 @@ router.post("/supply/:id", verifiedActors, async (req, res) => {
 
 	let session = req.session
 	let suppliedId = req.params.id
-	if (!session || !session.awaitingInput || !suppliedId || suppliedId !== session.awaitingInputId) {
+	console.log("suppledId", suppliedId)
+	if (!session || !session.data.awaitingInput || !suppliedId || suppliedId !== session.data.awaitingInputId) {
 		// not looking for input
+		console.log("not looking for input", session)
 		return res.status(400).end()
 	}
 
 	let input = req.body // string
+	console.log("input", input)
 	if (!input || input.length === 0 || !/^\d{7}#\d{7}#$/.test(input)) {
 		// return 0
+		console.log("invalid input")
 		res.status(400).end()
 	}
 
@@ -169,28 +190,34 @@ router.post("/supply/:id", verifiedActors, async (req, res) => {
 	let [nric, accountno, _] = input.toLowerCase().split("#")
 
 	// unset session state (to prevent another duplicated supply action)
-	req.session.awaitingInput = false
-	req.session.awaitingInputId = 0 // reset to default
+	req.session.data.awaitingInput = false
+	req.session.data.awaitingInputId = 0 // reset to default
 
 	// obtain data from database
 	try {
-		let userData = sqlClient.getUserDataFromNRICDigits(nric)
+		let userData = await sqlClient.getUserDataFromNRICDigits(nric)
 		if (!userData) {
 			throw new Error("Failed to retrieve user details")
 		}
 
-		let accountsData = getAccountData(userData.id)
+		let accountsData = await sqlClient.getAccountData(userData.id) // will never be undefined, returns empty array on no match
 
 		// format data for chat service
-		let details = `The supplied details for the current caller:
-
-		# Accounts
-		idx	account type
-		${accountsData.map((account, i) => `${i}	${account.type_name}`).join("\n")}`
+		let details;
+		if (accountsData.length === 0) {
+			details = "The supplied user identity has no bank accounts with us."
+		} else {
+			details = `The supplied details for the current caller:
+# Accounts
+idx	account type
+${accountsData.map((account, i) => `${i}	${account.type_name}`).join("\n")}`
+		}
 
 		// update session with account identifiers
-		req.session.userId = userData.id
-		req.session.accounts = accountsData
+		req.session.data.userId = userData.id
+		req.session.data.accounts = accountsData
+
+		console.log("\n\ndetails", details)
 
 		// pass data into chat service
 		let chatHistory = req.session.data.chatHistory
@@ -198,16 +225,9 @@ router.post("/supply/:id", verifiedActors, async (req, res) => {
 
 		return chatResponseHandler(req, res, response)
 	} catch (err) {
+		console.log("failed", err.message)
 		return res.status(400).end()
 	}
-})
-
-router.get("/embed", async (req, res) => {
-	console.log("embedding", req.body)
-	let e = await embedding.embedding(req.body)
-	console.log("result", e, typeof e, e.length)
-
-	return res.status(200).end()
 })
 
 module.exports = { // export router object and authenticated middleware
