@@ -22,7 +22,7 @@ importers:
         version: 1.18.1
       openai:
         specifier: ^4.68.4
-        version: 4.68.4
+        version: 4.68.4(zod@3.23.8)
       pg:
         specifier: ^8.13.1
         version: 8.13.1
@@ -32,6 +32,9 @@ importers:
       redis:
         specifier: ^4.7.0
         version: 4.7.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
 packages:
 
@@ -498,6 +501,9 @@ packages:
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
 
+  zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+
 snapshots:
 
   '@redis/bloom@1.2.0(@redis/client@1.6.0)':
@@ -795,7 +801,7 @@ snapshots:
 
   on-headers@1.0.2: {}
 
-  openai@4.68.4:
+  openai@4.68.4(zod@3.23.8):
     dependencies:
       '@types/node': 18.19.60
       '@types/node-fetch': 2.6.11
@@ -804,6 +810,8 @@ snapshots:
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
       node-fetch: 2.7.0
+    optionalDependencies:
+      zod: 3.23.8
     transitivePeerDependencies:
       - encoding
 
@@ -973,3 +981,5 @@ snapshots:
   xtend@4.0.2: {}
 
   yallist@4.0.0: {}
+
+  zod@3.23.8: {}

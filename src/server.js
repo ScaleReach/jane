@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 })
 
 app.use(bparser.text())
+app.use(bparser.json())
 app.use(chat_router.baseURL, chat_router.router)
 
 console.log("Allowing CORS", config.interface.url)

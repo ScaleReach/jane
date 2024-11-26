@@ -2,6 +2,7 @@ const baseURL = "/chat"
 
 const express = require("express")
 const path = require("path")
+const { chat } = require("../includes/chat")
 const config = require(path.join(__dirname, "../config"))
 const chatService = require(path.join(__dirname, "../includes/chat"))
 const intentService = require(path.join(__dirname, "../includes/intent"))
@@ -74,7 +75,7 @@ const chatResponseHandler = async (req, res, chatResponse, depth=0) => {
 		// in intent description: substitute $x$ for account numbers
 		console.log("req.session.data.accounts", req.session.data.accounts)
 		for (let i = 0; i < req.session.data.accounts.length; i++) {
-			chatResponse.intent.description = chatResponse.intent.description.replaceAll(`$${i}$`, req.session.data.accounts[i].id)
+			chatResponse.intent.description = chatResponse.intent.description.replaceAll(`$${i}$`, req.session.data.accounts[i].account_number)
 		}
 
 		// file intent
@@ -114,7 +115,7 @@ const chatResponseHandler = async (req, res, chatResponse, depth=0) => {
 		// build system prompt
 		let details
 		if (knowledgeRows.length >= 1) {
-			details = `Top 3 most relevant knowledge (from most relevant to most irrelevant):\n${knowledgeRows.map((knowledge, i) => `${i +1} ${knowledge.question}\n- ${knowledge.answer}`)}`
+			details = `Top 3 most relevant knowledge (from most relevant to most irrelevant):\n${knowledgeRows.map((knowledge, i) => `${i +1} ${knowledge.question}\n- ${knowledge.answer}`).join("\n")}`
 		} else {
 			details = "No result returned from knowledge bank, kindly escalate the call to a human provider. Thank you."
 		}
@@ -225,10 +226,19 @@ ${accountsData.map((account, i) => `${i}	${account.type_name}`).join("\n")}`
 
 		return chatResponseHandler(req, res, response)
 	} catch (err) {
+		// failed to retrieve data
 		console.log("failed", err.message)
-		return res.status(400).end()
+		let response = await chatService.chat(
+			req.session.data.chatHistory,
+			"Failed to verify caller's identity, please escalate the call to a human provider. Thank you.",
+			1 // set actor to 1 (indicate system prompt)
+		)
+
+		return chatResponseHandler(req, res, response)
 	}
 })
+
+
 
 module.exports = { // export router object and authenticated middleware
 	baseURL, router

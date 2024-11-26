@@ -59,7 +59,7 @@ async function getAccountData(userId) {
 	 * throws an error if client failed to run query
 	 */
 	try {
-		let userDataRow = await intent_pool.query(`SELECT *, at.name AS type_name FROM "account" a JOIN "accounttype" at ON a.type = at.id WHERE userid = $1`, [userId])
+		let userDataRow = await intent_pool.query(`SELECT *, a.id AS account_number, at.name AS type_name FROM "account" a JOIN "accounttype" at ON a.type = at.id WHERE userid = $1`, [userId])
 		console.log("account queried", userDataRow.rows)
 		return userDataRow.rows
 	} catch (err) {
