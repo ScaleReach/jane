@@ -9,7 +9,7 @@ const header = require("./header")
 console.log(process.env.OPENAI_API_KEY)
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 
 const chat_router = require(path.join(__dirname, "./routers/chat.js"));
 
