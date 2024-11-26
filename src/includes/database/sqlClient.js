@@ -81,6 +81,23 @@ async function getTopThreeRelevantKnowledge(queryEmbedding) {
 	}
 }
 
+async function insertKnowledge(question, answer, questionEmbedding, answerEmbedding) {
+	/**
+	 * queryEmbedding: number[], embedding of query
+	 * 
+	 * returns top 3 most relevant question-answer knowledge rows (in order, with index 0 being most relevant)
+	 */
+	try {
+		let knowledgeRow = await knowledge_pool.query(
+			`INSERT INTO "faq" (question, answer, question_embedding, answer_embedding)
+				VALUES ($1, $2, $3, $4)
+			RETURNING id`, [question, answer, pgvector.toSql(questionEmbedding), pgvector.toSql(answerEmbedding)])
+		return knowledgeRow.rows[0]
+	} catch (err) {
+		throw new SQLError(`Failed to insert into "faq": ${err.message}`)
+	}
+}
+
 module.exports = {
-	getUserDataFromNRICDigits, getAccountData, getTopThreeRelevantKnowledge
+	getUserDataFromNRICDigits, getAccountData, getTopThreeRelevantKnowledge, insertKnowledge
 }

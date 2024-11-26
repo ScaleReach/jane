@@ -238,6 +238,26 @@ ${accountsData.map((account, i) => `${i}	${account.type_name}`).join("\n")}`
 	}
 })
 
+router.post("/knowledge/new", async (req, res) => {
+	let d = req.body
+	console.log(d)
+
+	let question = d.question
+	let answer = d.answer
+
+	let questionEmbedding = await embedding.embedding(question)
+	let answerEmbedding = await embedding.embedding(answer)
+
+	try {
+		knowledgeRows = await sqlClient.insertKnowledge(question, answer, questionEmbedding, answerEmbedding)
+	} catch (err) {
+		console.log("server failed to insert knowledge", err.message)
+		return res.status(400).end()
+	}
+
+	return res.status(200).end()
+})
+
 
 
 module.exports = { // export router object and authenticated middleware
