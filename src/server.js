@@ -1,14 +1,20 @@
 const express = require("express");
 const path = require("path")
+const fs = require("fs")
+const https  = require("https")
 const bparser = require("body-parser")
 const dotenv = require("dotenv").config({ path: __dirname + "/.env" })
 
 const config = require("./config")
 const header = require("./header")
 
-console.log(process.env.OPENAI_API_KEY)
+const options = {
+	key: fs.readFileSync(process.env.SSL_KEY),
+	cert: fs.readFileSync(process.env.SSL_CERT),
+}
 
 const app = express();
+const server = https.createServer(options, app);
 const PORT = process.env.PORT;
 
 const chat_router = require(path.join(__dirname, "./routers/chat.js"));
@@ -27,7 +33,7 @@ app.use(chat_router.baseURL, chat_router.router)
 
 console.log("Allowing CORS", config.interface.url)
 
-app.listen(PORT, (error) => {
+server.listen(PORT, (error) => {
 	if (!error) {
 		console.log("Server is Successfully Running, and App is listening on port "+ PORT)
 		console.log(header("Jane", PORT))
