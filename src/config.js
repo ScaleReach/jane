@@ -23,11 +23,11 @@ let production = {
 	authKeyHeaderField: "x-jane-key",
 
 	interface: {
-		url: "http://localhost:3001",
+		url: "https://scalereach.team"
 	},
 
 	intentService: {
-		url: "http://localhost:3003",
+		url: "https://scalereach.team:6732",
 		authKeyHeaderField: "x-intent-key"
 	},
 
