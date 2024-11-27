@@ -27,7 +27,7 @@ let production = {
 	},
 
 	intentService: {
-		url: "https://scalereach.team:6732",
+		url: "http://localhost:5732",
 		authKeyHeaderField: "x-intent-key"
 	},
 
