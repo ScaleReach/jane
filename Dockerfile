@@ -37,9 +37,9 @@ ENV SSL_CERT=/certs/scalereach.team.pem
 
 USER expressjs
 
-EXPOSE 6733
+EXPOSE 6732
 
-ENV PORT=6733
+ENV PORT=6732
 
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "src/server.js"]
