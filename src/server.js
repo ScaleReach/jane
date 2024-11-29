@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path")
 const fs = require("fs")
+const http = require("http")
 const https  = require("https")
 const bparser = require("body-parser")
 const dotenv = require("dotenv").config({ path: __dirname + "/.env" })
@@ -8,13 +9,18 @@ const dotenv = require("dotenv").config({ path: __dirname + "/.env" })
 const config = require("./config")
 const header = require("./header")
 
-const options = {
-	key: fs.readFileSync(process.env.SSL_KEY),
-	cert: fs.readFileSync(process.env.SSL_CERT),
-}
-
 const app = express();
-const server = https.createServer(options, app);
+let server;
+if (process.env.ENV_MODE == "production") {
+	const options = {
+		key: fs.readFileSync(process.env.SSL_KEY),
+		cert: fs.readFileSync(process.env.SSL_CERT),
+	}
+
+	server = https.createServer(options, app);
+} else {
+	server = http.createServer(app)
+}
 const PORT = process.env.PORT;
 
 const chat_router = require(path.join(__dirname, "./routers/chat.js"));
