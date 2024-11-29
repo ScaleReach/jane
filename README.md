@@ -36,7 +36,6 @@ Returns
 
 # Deploy
 
-1. `PORT=6732` in .env
-2. Upload certificates (.pem and .key) into /certs
-3. `docker build -t jane .`
-4. `docker run -p 6732:6732 --env-file ./src/.env jane`
+1. Upload certificates (.pem and .key) into /certs (`./certs/scalereach.team.pem` and `./certs/scalereach.team.key`)
+2. `docker build -t jane .`
+3. `docker run -p 6732:6732 --env-file ./src/.env jane`
