@@ -251,8 +251,8 @@ async function chat(chatHistory, prompt, actor=0) {
 	} catch (error) {
 		console.error("Error during OpenAI API call:", error);
 		return {
-			type: 0,
-			spokenResponse: "Sorry, there was an error processing your request. Please call a new agent."
+			type: 7, // end call
+			spokenResponse: "Please hold on while I transfer your call to another provider."
 		}
 	}
 }
