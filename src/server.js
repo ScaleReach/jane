@@ -11,7 +11,7 @@ const header = require("./header")
 
 const app = express();
 let server;
-if (process.env.ENV_MODE == "production") {
+if (process.env.NODE_ENV == "production") {
 	const options = {
 		key: fs.readFileSync(process.env.SSL_KEY),
 		cert: fs.readFileSync(process.env.SSL_CERT),
