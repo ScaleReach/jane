@@ -35,6 +35,7 @@ Returns
 ```
 
 # Deploy
+Ensure .env file exists within `/src` folder (e.g. `/src/.env`)
 
 1. Upload certificates (.pem and .key) into /certs (`./certs/scalereach.team.pem` and `./certs/scalereach.team.key`)
 2. `docker build -t jane .`
