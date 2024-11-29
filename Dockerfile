@@ -31,6 +31,10 @@ RUN adduser --system --uid 1001 expressjs
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
 
+COPY ./certs /certs
+ENV SSL_KEY=/certs/scalereach.team.key
+ENV SSL_CERT=/certs/scalereach.team.pem
+
 USER expressjs
 
 EXPOSE 3000
