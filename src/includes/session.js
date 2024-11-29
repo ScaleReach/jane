@@ -3,8 +3,6 @@
  * 
  * redis-store
  */
-const redis = require("redis")
-const session = require("express-session")
 const crypto = require("node:crypto")
 
 const SessionStore = new Map()
