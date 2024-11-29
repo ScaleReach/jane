@@ -33,3 +33,10 @@ Returns
 	message: "Hello, I am Jane from OCBC, how may I help you?"
 }
 ```
+
+# Deploy
+
+1. `PORT=6732` in .env
+2. Upload certificates (.pem and .key) into /certs
+3. `docker build -t jane .`
+4. `docker run -p 6732:6732 --env-file ./src/.env jane`
