@@ -78,6 +78,7 @@ To utilise this service, you must obtain the identity of the caller, refer to se
 The above requirement cannot be bypass.
 
 Before triggering this flow, you must understand the intent of the caller, and capture as much details as you deem necessary to resolve the enquiry.
+Additionally, before triggering this flow, you must double confirm the intent of the caller, do clarify again if that is the intended intent of the caller.
 
 Supply the IntentObject.description in a concise manner, without missing crucial information to resolve the inquiry.
 The description generated should be concise, without losing any important details to resolve the enquiry.
