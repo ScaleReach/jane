@@ -179,16 +179,16 @@ router.post("/supply/:id", verifiedActors, async (req, res) => {
 		return res.status(400).end()
 	}
 
-	let input = req.body // string
-	console.log("input", input)
-	if (!input || input.length === 0 || !/^\d{7}#\d{7}#$/.test(input)) {
-		// return 0
-		console.log("invalid input")
-		res.status(400).end()
-	}
+	// let input = req.body // string
+	// console.log("input", input)
+	// if (!input || input.length === 0 || !/^\d{7}#\d{7}#$/.test(input)) {
+	// 	// return 0
+	// 	console.log("invalid input")
+	// 	res.status(400).end()
+	// }
 
-	// obtain nric and account number --> IMPORTANT: never supply this to chat service
-	let [nric, accountno, _] = input.toLowerCase().split("#")
+	// // obtain nric and account number --> IMPORTANT: never supply this to chat service
+	// let [nric, accountno, _] = input.toLowerCase().split("#")
 
 	// unset session state (to prevent another duplicated supply action)
 	req.session.data.awaitingInput = false
@@ -196,7 +196,7 @@ router.post("/supply/:id", verifiedActors, async (req, res) => {
 
 	// obtain data from database
 	try {
-		let userData = await sqlClient.getUserDataFromNRICDigits(nric)
+		let userData = await sqlClient.getUserDataFromNRICDigits("9213913") //nric) // <-- HERE
 		if (!userData) {
 			throw new Error("Failed to retrieve user details")
 		}
